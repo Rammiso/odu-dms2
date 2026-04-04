@@ -16,6 +16,7 @@ import ReportsPage from "@/pages/ReportsPage";
 import NotificationsPage from "@/pages/NotificationsPage";
 import UserManagementPage from "@/pages/UserManagementPage";
 import AuditLogsPage from "@/pages/AuditLogsPage";
+import LandingPage from "@/pages/LandingPage";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
