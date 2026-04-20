@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { User } from "./models/User.js";
 import { Dorm } from "./models/Dorm.js";
 import { Room } from "./models/Room.js";
+import { ADMIN_CREDENTIALS } from "./config/constants.js";
 
 dotenv.config();
 
@@ -24,21 +25,22 @@ const importData = async () => {
     await Dorm.deleteMany();
     await Room.deleteMany();
 
-    const hashedPassword = await bcrypt.hash("Admin@1234", 10);
+    // Hardcoded admin credentials
+    const hashedPassword = await bcrypt.hash(ADMIN_CREDENTIALS.password, 10);
 
     const createdUsers = await User.insertMany([
       {
-        fullName: "System Admin",
-        username: "admin",
-        email: "admin@odu.edu",
+        fullName: ADMIN_CREDENTIALS.fullName,
+        username: ADMIN_CREDENTIALS.username,
+        email: ADMIN_CREDENTIALS.email,
         password: hashedPassword,
-        role: "System Admin",
+        role: ADMIN_CREDENTIALS.role,
         status: "Active",
       },
       {
         fullName: "Warden Jane",
         username: "warden_jane",
-        email: "jane@odu.edu",
+        email: "jane@odu.edu.et",
         password: hashedPassword,
         role: "Dorm Admin",
         status: "Active",
@@ -46,7 +48,7 @@ const importData = async () => {
       {
         fullName: "Maintenance Mark",
         username: "maint_mark",
-        email: "mark@odu.edu",
+        email: "mark@odu.edu.et",
         password: hashedPassword,
         role: "Maintenance Staff",
         status: "Active",
@@ -54,7 +56,7 @@ const importData = async () => {
       {
         fullName: "Student Sam",
         username: "sam.student",
-        email: "sam@student.odu.edu",
+        email: "sam@student.odu.edu.et",
         password: hashedPassword,
         role: "Student",
         studentId: "STU001",
@@ -64,7 +66,7 @@ const importData = async () => {
       {
         fullName: "Student Sally",
         username: "sally.student",
-        email: "sally@student.odu.edu",
+        email: "sally@student.odu.edu.et",
         password: hashedPassword,
         role: "Student",
         studentId: "STU002",
@@ -72,6 +74,11 @@ const importData = async () => {
         status: "Active",
       },
     ]);
+
+    console.log("✓ Users created successfully");
+    console.log(`  - Admin: ${ADMIN_CREDENTIALS.username} / ${ADMIN_CREDENTIALS.password}`);
+    console.log(`  - Email: ${ADMIN_CREDENTIALS.email}`);
+    console.log(`  - Role: ${ADMIN_CREDENTIALS.role}`);
 
     const createdDorms = await Dorm.insertMany([
       {
@@ -118,7 +125,21 @@ const importData = async () => {
 
     const createdRooms = await Room.insertMany(roomsToInsert);
 
-    console.log("Data Imported!");
+    console.log("✓ Dorms created successfully");
+    console.log("✓ Rooms created successfully");
+    console.log("\n" + "=".repeat(60));
+    console.log("DATABASE SEEDING COMPLETED SUCCESSFULLY!");
+    console.log("=".repeat(60));
+    console.log("\n📋 DEFAULT ADMIN CREDENTIALS:");
+    console.log(`   Username: ${ADMIN_CREDENTIALS.username}`);
+    console.log(`   Password: ${ADMIN_CREDENTIALS.password}`);
+    console.log(`   Email: ${ADMIN_CREDENTIALS.email}`);
+    console.log(`   Role: ${ADMIN_CREDENTIALS.role}`);
+    console.log("\n📋 OTHER TEST CREDENTIALS:");
+    console.log("   Dorm Admin: warden_jane / (same password)");
+    console.log("   Maintenance: maint_mark / (same password)");
+    console.log("   Student: sam.student / (same password)");
+    console.log("\n" + "=".repeat(60) + "\n");
     process.exit();
   } catch (error) {
     console.error(`${error}`);
