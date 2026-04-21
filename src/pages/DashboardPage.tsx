@@ -472,7 +472,12 @@ function AdminDashboard() {
 }
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
+// export default function DashboardPage() {
+//   const { user } = useAuth();
+//   return user?.role === 'student' ? <StudentDashboard /> : <AdminDashboard />;
+// }
+// Line 475-477
 export default function DashboardPage() {
-  const { user } = useAuth();
-  return user?.role === 'student' ? <StudentDashboard /> : <AdminDashboard />;
+  const { hasRole } = useAuth();  // ← Use hasRole instead of user?.role
+  return hasRole(['student']) ? <StudentDashboard /> : <AdminDashboard />;
 }

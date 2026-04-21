@@ -18,7 +18,7 @@ const MaintenancePage = () => {
   const { user, hasRole } = useAuth();
   const isAdmin = hasRole(['dorm_admin', 'system_admin']);
   const isMaint = hasRole(['maintenance']);
-
+const isStudent = hasRole(['student']);  // ← ADD THIS LINE
   const [requests, setRequests] = useState<any[]>(() => {
     return [];
   });
@@ -34,14 +34,23 @@ const MaintenancePage = () => {
   const [statusForm, setStatusForm] = useState({ status: '', resolutionNotes: '' });
 
   const refresh = async () => {
-    const result = isMaint
-      ? await apiService.getMyMaintenanceTasks()
-      : await apiService.getMaintenanceRequests({});
+  let result;
+  
+  if (isMaint) {
+    // Maintenance staff - see assigned tasks
+    result = await apiService.getMyMaintenanceTasks();
+  } else if (isStudent) {
+    // Students - see only their own requests
+    result = await apiService.getStudentMaintenanceRequests(10, 0);
+  } else {
+    // Admins/Management - see all requests
+    result = await apiService.getMaintenanceRequests({});
+  }
 
-    if (result.success && result.data) {
-      setRequests((result.data as any).requests || (result.data as any).tasks || []);
-    }
-  };
+  if (result.success && result.data) {
+    setRequests((result.data as any).requests || (result.data as any).tasks || []);
+  }
+};
 
   useEffect(() => {
     refresh();
