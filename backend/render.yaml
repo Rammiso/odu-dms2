@@ -1,0 +1,28 @@
+services:
+  # Web Service
+  - type: web
+    name: dms-backend
+    env: node
+    plan: starter
+    buildCommand: "npm install"
+    startCommand: "npm start"
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    autoDeploy: true
+    
+  # MongoDB Service (if using Render's managed MongoDB)
+  # Uncomment if you want to use Render's MongoDB instead of external
+  # - type: pserv
+  #   name: dms-mongodb
+  #   plan: starter
+  #   env: docker
+  #   repo: https://github.com/render-examples/mongodb.git
+  #   envVars:
+  #     - key: MONGO_INITDB_ROOT_USERNAME
+  #       value: admin
+  #     - key: MONGO_INITDB_ROOT_PASSWORD
+  #       value: your_secure_password
