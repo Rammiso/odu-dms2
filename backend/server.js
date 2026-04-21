@@ -16,7 +16,10 @@ const app = express();
 
 app.disable("x-powered-by");
 app.use(helmet());
-app.use(cors({ origin: env.corsOrigin }));
+app.use(cors({ 
+  origin: env.corsOrigin === "*" ? "*" : env.corsOrigin.split(","),
+  credentials: true
+}));
 app.use(compression());
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
