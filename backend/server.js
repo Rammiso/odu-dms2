@@ -39,6 +39,8 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
+// Handle preflight requests before authentication middleware
+app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 app.use(compression());
 app.use(express.json({ limit: "1mb" }));
