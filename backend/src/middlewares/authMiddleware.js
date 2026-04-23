@@ -2,12 +2,8 @@ import jwt from "jsonwebtoken";
 
 import { env } from "../config/env.js";
 import { ApiError } from "../utils/ApiError.js";
+import { User } from "../models/User.js";
 
-/**
- * Maps DB role values (Title Case) → API role tokens (snake_case).
- * This lets the DB enum stay as-is while the JWT and frontend
- * always deal with consistent snake_case role strings.
- */
 const DB_ROLE_TO_API_ROLE = {
   "Student": "student",
   "Dorm Admin": "dorm_admin",
@@ -16,7 +12,6 @@ const DB_ROLE_TO_API_ROLE = {
   "System Admin": "system_admin",
 };
 
-/** Also accept snake_case roles in case they are already normalised */
 const API_ROLES = new Set(Object.values(DB_ROLE_TO_API_ROLE));
 
 export const normaliseRole = (role) => {
@@ -25,27 +20,30 @@ export const normaliseRole = (role) => {
   return DB_ROLE_TO_API_ROLE[role] || role.toLowerCase().replace(/\s+/g, "_");
 };
 
-export const requireAuth = (req, res, next) => {
-  const authorization = req.headers.authorization;
-
-  if (!authorization || !authorization.startsWith("Bearer ")) {
-    throw new ApiError(401, "Authorization token is missing");
-  }
-
-  const token = authorization.split(" ")[1];
-
+export const requireAuth = async (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, env.jwtSecret);
-    const normalisedRole = normaliseRole(decoded.role);
-    console.log(`[auth] decoded.role="${decoded.role}" → normalised="${normalisedRole}"`);
-    req.user = {
-      id: decoded.sub,
-      role: normalisedRole,
-    };
+    const authorization = req.headers.authorization;
+    if (!authorization || !authorization.startsWith("Bearer ")) {
+      throw new ApiError(401, "Authorization token is missing");
+    }
 
+    const token = authorization.split(" ")[1];
+    const decoded = jwt.verify(token, env.jwtSecret);
+
+    // Always fetch the live role from DB — never trust the JWT role alone
+    const user = await User.findById(decoded.sub).select("role status");
+    if (!user || user.status === "Inactive") {
+      throw new ApiError(401, "User not found or inactive");
+    }
+
+    const normalisedRole = normaliseRole(user.role);
+    console.log(`[auth] user=${decoded.sub} db_role="${user.role}" → "${normalisedRole}"`);
+
+    req.user = { id: decoded.sub, role: normalisedRole };
     next();
-  } catch {
-    throw new ApiError(401, "Invalid or expired token");
+  } catch (err) {
+    if (err instanceof ApiError) return next(err);
+    next(new ApiError(401, "Invalid or expired token"));
   }
 };
 
