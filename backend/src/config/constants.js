@@ -4,10 +4,10 @@
  */
 
 export const ADMIN_CREDENTIALS = {
-  username: "admin",
-  password: "Admin@2026",
-  email: "admin@odu.edu.et",
-  fullName: "System Administrator",
+  username: process.env.ADMIN_USERNAME || "admin",
+  password: process.env.ADMIN_PASSWORD || "Admin@2026",
+  email: process.env.ADMIN_EMAIL || "admin@odu.edu.et",
+  fullName: process.env.ADMIN_FULLNAME || "System Administrator",
   role: "System Admin",
 };
 
