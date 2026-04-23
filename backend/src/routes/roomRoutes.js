@@ -12,20 +12,20 @@ import {
 
 const router = Router();
 
-// Available rooms — accessible by all authenticated users (students need this for room change requests)
+// Available rooms — accessible by all authenticated users
 router.get("/rooms/available", requireAuth, roomController.getAvailableRooms);
 
 // Admin-only routes
-router.use(requireAuth, authorizeRoles("dorm_admin", "management", "system_admin"));
+const adminAuth = [requireAuth, authorizeRoles("dorm_admin", "management", "system_admin")];
 
-router.get("/dorms", roomController.getAllDorms);
-router.post("/dorms", validate(createDormSchema), roomController.createDorm);
-router.post("/dorms/:dormId/floors", validate(addFloorSchema), roomController.addFloor);
+router.get("/dorms", ...adminAuth, roomController.getAllDorms);
+router.post("/dorms", ...adminAuth, validate(createDormSchema), roomController.createDorm);
+router.post("/dorms/:dormId/floors", ...adminAuth, validate(addFloorSchema), roomController.addFloor);
 
-router.get("/rooms", roomController.getRooms);
-router.post("/rooms", validate(createRoomSchema), roomController.createRoom);
-router.get("/rooms/:roomId", roomController.getRoom);
-router.put("/rooms/:roomId", validate(updateRoomSchema), roomController.updateRoom);
-router.get("/rooms/:roomId/occupants", roomController.getRoomOccupants);
+router.get("/rooms", ...adminAuth, roomController.getRooms);
+router.post("/rooms", ...adminAuth, validate(createRoomSchema), roomController.createRoom);
+router.get("/rooms/:roomId", ...adminAuth, roomController.getRoom);
+router.put("/rooms/:roomId", ...adminAuth, validate(updateRoomSchema), roomController.updateRoom);
+router.get("/rooms/:roomId/occupants", ...adminAuth, roomController.getRoomOccupants);
 
 export { router as roomRoutes };
