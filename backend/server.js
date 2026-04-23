@@ -11,6 +11,7 @@ import { errorHandler } from "./src/middlewares/errorMiddleware.js";
 import { notFoundHandler } from "./src/middlewares/notFoundMiddleware.js";
 import { appRouter } from "./src/routes/index.js";
 import { logger } from "./src/utils/logger.js";
+import { ensureAdminExists } from "./src/bootstrap.js";
 
 const app = express();
 
@@ -61,6 +62,7 @@ app.use(errorHandler);
 
 const startServer = async () => {
   await connectDatabase();
+  await ensureAdminExists();
 
   app.listen(env.port, () => {
     logger.info(`DMS API listening on port ${env.port}`);
