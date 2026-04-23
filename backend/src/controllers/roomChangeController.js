@@ -9,7 +9,9 @@ export const roomChangeController = {
   }),
 
   submitRoomChangeRequest: asyncHandler(async (req, res) => {
+    console.log(`[room-change] POST submit - user=${req.user.id} role=${req.user.role}`);
     const result = await roomChangeService.submit(req.user.id, req.body);
+    console.log(`[room-change] POST submit - success, request created`);
     res.status(201).json({ success: true, data: result });
   }),
 

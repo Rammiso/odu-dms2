@@ -4,7 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const maintenanceController = {
   getMaintenanceRequests: asyncHandler(async (req, res) => {
-    const data = await maintenanceService.getRequests(req.query);
+    const data = await maintenanceService.getRequests(req.query, req.user);
     res.status(200).json({ success: true, data });
   }),
 

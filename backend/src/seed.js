@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 
 import { User } from "./models/User.js";
+import { Student } from "./models/Student.js";
 import { Dorm } from "./models/Dorm.js";
 import { Room } from "./models/Room.js";
 import { ADMIN_CREDENTIALS } from "./config/constants.js";
@@ -22,6 +23,7 @@ const connectDB = async () => {
 const importData = async () => {
   try {
     await User.deleteMany();
+    await Student.deleteMany();
     await Dorm.deleteMany();
     await Room.deleteMany();
 
@@ -75,10 +77,24 @@ const importData = async () => {
       },
     ]);
 
+    // Create Student profiles for student users
+    const studentUsers = createdUsers.filter(u => u.role === "Student");
+    await Student.insertMany(studentUsers.map(u => ({
+      studentId: u.studentId,
+      fullName: u.fullName,
+      gender: u.gender || "M",
+      department: "General",
+      year: 1,
+      phone: "0900000000",
+      email: u.email,
+      user: u._id,
+    })));
+
     console.log("✓ Users created successfully");
     console.log(`  - Admin: ${ADMIN_CREDENTIALS.username} / ${ADMIN_CREDENTIALS.password}`);
     console.log(`  - Email: ${ADMIN_CREDENTIALS.email}`);
     console.log(`  - Role: ${ADMIN_CREDENTIALS.role}`);
+    console.log(`✓ Student profiles created`);
 
     const createdDorms = await Dorm.insertMany([
       {

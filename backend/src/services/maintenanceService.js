@@ -9,8 +9,13 @@ const buildFilter = (query) => {
 };
 
 export const maintenanceService = {
-  getRequests: async (query) => {
-    const requests = await maintenanceRepository.findAll(buildFilter(query));
+  getRequests: async (query, user) => {
+    const filter = buildFilter(query);
+    // Students only see their own submissions
+    if (user?.role === "student") {
+      filter.submittedBy = user.id;
+    }
+    const requests = await maintenanceRepository.findAll(filter);
     return { requests };
   },
 

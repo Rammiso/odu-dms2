@@ -14,7 +14,7 @@ const router = Router();
 router.get(
   "/room-change-requests",
   requireAuth,
-  authorizeRoles("student"),
+  authorizeRoles("student", "dorm_admin", "management", "system_admin"),
   roomChangeController.getMyRoomChangeRequests
 );
 

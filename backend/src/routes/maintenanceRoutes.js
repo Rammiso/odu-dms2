@@ -15,7 +15,7 @@ const router = Router();
 router.get(
   "/maintenance-requests",
   requireAuth,
-  authorizeRoles("dorm_admin", "maintenance", "management", "system_admin"),
+  authorizeRoles("student", "dorm_admin", "maintenance", "management", "system_admin"),
   maintenanceController.getMaintenanceRequests
 );
 

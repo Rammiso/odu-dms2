@@ -5,15 +5,15 @@ import { authorizeRoles, requireAuth } from "../middlewares/authMiddleware.js";
 
 const router = Router();
 
-router.use(requireAuth, authorizeRoles("dorm_admin", "management", "system_admin"));
+const adminAuth = [requireAuth, authorizeRoles("dorm_admin", "management", "system_admin")];
 
-router.get("/reports/dashboard-summary", reportController.getDashboardSummary);
-router.get("/reports/occupancy", reportController.getOccupancyReport);
-router.get("/reports/student-directory", reportController.getStudentDirectory);
-router.get("/reports/maintenance-summary", reportController.getMaintenanceSummary);
-router.get("/reports/room-utilization", reportController.getRoomUtilization);
-router.get("/reports/unassigned-students", reportController.getUnassignedStudentsReport);
-router.get("/reports/inventory-condition", reportController.getInventoryConditionReport);
-router.post("/reports/export", reportController.exportReport);
+router.get("/reports/dashboard-summary", ...adminAuth, reportController.getDashboardSummary);
+router.get("/reports/occupancy", ...adminAuth, reportController.getOccupancyReport);
+router.get("/reports/student-directory", ...adminAuth, reportController.getStudentDirectory);
+router.get("/reports/maintenance-summary", ...adminAuth, reportController.getMaintenanceSummary);
+router.get("/reports/room-utilization", ...adminAuth, reportController.getRoomUtilization);
+router.get("/reports/unassigned-students", ...adminAuth, reportController.getUnassignedStudentsReport);
+router.get("/reports/inventory-condition", ...adminAuth, reportController.getInventoryConditionReport);
+router.post("/reports/export", ...adminAuth, reportController.exportReport);
 
 export { router as reportRoutes };

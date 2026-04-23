@@ -12,15 +12,12 @@ import {
 
 const router = Router();
 
-router.use(
-  requireAuth,
-  authorizeRoles("dorm_admin", "management", "system_admin")
-);
+const adminAuth = [requireAuth, authorizeRoles("dorm_admin", "management", "system_admin")];
 
-router.post("/allocation/eligible-students", validate(eligibleStudentsSchema), allocationController.getEligibleStudents);
-router.post("/allocation/automatic", validate(autoAllocateSchema), allocationController.autoAllocate);
-router.post("/allocation/manual", validate(manualAllocateSchema), allocationController.manualAllocate);
-router.get("/students/unassigned", roomController.getUnassignedStudents);
-router.delete("/assignments/:assignmentId/vacate", allocationController.vacateRoom);
+router.post("/allocation/eligible-students", ...adminAuth, validate(eligibleStudentsSchema), allocationController.getEligibleStudents);
+router.post("/allocation/automatic", ...adminAuth, validate(autoAllocateSchema), allocationController.autoAllocate);
+router.post("/allocation/manual", ...adminAuth, validate(manualAllocateSchema), allocationController.manualAllocate);
+router.get("/students/unassigned", ...adminAuth, roomController.getUnassignedStudents);
+router.delete("/assignments/:assignmentId/vacate", ...adminAuth, allocationController.vacateRoom);
 
 export { router as allocationRoutes };

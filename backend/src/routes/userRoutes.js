@@ -7,15 +7,15 @@ import { createUserSchema, updateUserSchema } from "../validators/userValidator.
 
 const router = Router();
 
-router.use(requireAuth, authorizeRoles("system_admin"));
+const sysAdmin = [requireAuth, authorizeRoles("system_admin")];
 
-router.get("/users", userController.getUsers);
-router.post("/users", validate(createUserSchema), userController.createUser);
-router.get("/users/:userId", userController.getUser);
-router.put("/users/:userId", validate(updateUserSchema), userController.updateUser);
-router.post("/users/:userId/deactivate", userController.deactivateUser);
-router.post("/users/:userId/reactivate", userController.reactivateUser);
-router.post("/users/:userId/reset-password", userController.adminResetPassword);
-router.get("/roles/permissions", userController.getRolePermissions);
+router.get("/users", ...sysAdmin, userController.getUsers);
+router.post("/users", ...sysAdmin, validate(createUserSchema), userController.createUser);
+router.get("/users/:userId", ...sysAdmin, userController.getUser);
+router.put("/users/:userId", ...sysAdmin, validate(updateUserSchema), userController.updateUser);
+router.post("/users/:userId/deactivate", ...sysAdmin, userController.deactivateUser);
+router.post("/users/:userId/reactivate", ...sysAdmin, userController.reactivateUser);
+router.post("/users/:userId/reset-password", ...sysAdmin, userController.adminResetPassword);
+router.get("/roles/permissions", requireAuth, userController.getRolePermissions);
 
 export { router as userRoutes };
