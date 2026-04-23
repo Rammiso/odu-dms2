@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { apiService } from '@/lib/api';
-import { Plus, Search, Shield, Edit, Trash2, RefreshCw } from 'lucide-react';
+import { Plus, Search, Shield, Edit, Trash2, RefreshCw, Copy, Eye, EyeOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -113,6 +113,11 @@ const UserManagementPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRow | null>(null);
   const [formData, setFormData] = useState<UserForm>(defaultForm);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState('');
+  const [showPasswordText, setShowPasswordText] = useState(false);
+  const [isEditPasswordOpen, setIsEditPasswordOpen] = useState(false);
+  const [editPasswordUser, setEditPasswordUser] = useState<UserRow | null>(null);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -181,8 +186,13 @@ const UserManagementPage = () => {
       tempPassword: formData.tempPassword,
     });
 
-    if (result.success) {
-      toast.success('User created successfully');
+    if (result.success && result.data) {
+      if (result.data.password) {
+        setGeneratedPassword(result.data.password);
+        setShowPasswordModal(true);
+      } else {
+        toast.success('User created successfully');
+      }
       await loadUsers();
       resetModal();
       return;
@@ -216,7 +226,12 @@ const UserManagementPage = () => {
   const handleResetPassword = async (id: string) => {
     const result = await apiService.resetUserPassword(id);
     if (result.success) {
-      toast.success(result.data?.message || 'Password reset initiated');
+      if (result.data?.password) {
+        setGeneratedPassword(result.data.password);
+        setShowPasswordModal(true);
+      } else {
+        toast.success(result.data?.message || 'Password reset initiated');
+      }
       return;
     }
 
@@ -357,7 +372,16 @@ const UserManagementPage = () => {
                           <RefreshCw className="w-4 h-4" />
                         </Button>
                       )}
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:bg-muted/10" onClick={() => handleResetPassword(u.id)}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:bg-muted/10"
+                        onClick={() => {
+                          setEditPasswordUser(u);
+                          setIsEditPasswordOpen(true);
+                        }}
+                        title="Reset password"
+                      >
                         <Shield className="w-4 h-4" />
                       </Button>
                     </div>
@@ -420,6 +444,108 @@ const UserManagementPage = () => {
               <Button type="submit" className="gradient-primary text-primary-foreground">Save User</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Password Display Modal */}
+      <Dialog open={showPasswordModal} onOpenChange={setShowPasswordModal}>
+        <DialogContent className="glass border-success/30 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Shield className="w-5 h-5 text-success" /> Temporary Password
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">Share this password with the user. They should change it on first login.</p>
+            <div className="bg-secondary/30 border border-success/20 rounded-lg p-4">
+              <div className="flex items-center justify-between gap-3">
+                <code className={cn(
+                  'flex-1 font-mono text-lg font-bold tracking-wider',
+                  showPasswordText ? 'text-foreground' : 'text-muted-foreground'
+                )}>
+                  {showPasswordText ? generatedPassword : '••••••••'}
+                </code>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setShowPasswordText(!showPasswordText)}
+                >
+                  {showPasswordText ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 w-8 p-0 text-primary hover:bg-primary/10"
+                  onClick={() => {
+                    navigator.clipboard.writeText(generatedPassword);
+                    toast.success('Password copied to clipboard');
+                  }}
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="bg-warning/5 border border-warning/20 rounded-lg p-3 text-xs text-warning">
+              ⚠️ This password will not be shown again. Make sure to save it or share it with the user immediately.
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              className="gradient-primary text-primary-foreground"
+              onClick={() => {
+                setShowPasswordModal(false);
+                setGeneratedPassword('');
+                setShowPasswordText(false);
+              }}
+            >
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Password Modal */}
+      <Dialog open={isEditPasswordOpen} onOpenChange={setIsEditPasswordOpen}>
+        <DialogContent className="glass border-primary/30 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Reset Password</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="p-3 rounded-lg bg-secondary/30 border border-white/5">
+              <p className="text-xs text-muted-foreground mb-1">User</p>
+              <p className="font-semibold text-sm">{editPasswordUser?.fullName}</p>
+              <p className="text-xs text-muted-foreground">{editPasswordUser?.email}</p>
+            </div>
+            <p className="text-sm text-muted-foreground">A new temporary password will be generated and displayed. The user should change it on first login.</p>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setIsEditPasswordOpen(false);
+                setEditPasswordUser(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="gradient-primary text-primary-foreground"
+              onClick={async () => {
+                if (!editPasswordUser) return;
+                await handleResetPassword(editPasswordUser.id);
+                setIsEditPasswordOpen(false);
+                setEditPasswordUser(null);
+              }}
+            >
+              Generate New Password
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -76,6 +76,4 @@ const studentSchema = new mongoose.Schema(
   }
 );
 
-studentSchema.index({ studentId: 1 }, { unique: true });
-
 export const Student = mongoose.model("Student", studentSchema);

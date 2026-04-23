@@ -352,7 +352,7 @@ class ApiService {
     return this.fetch(`${API_BASE_URL}/users${query ? `?${query}` : ''}`);
   }
 
-  async createUser(data: { fullName: string; email: string; role: string; studentId?: string; tempPassword?: boolean }): Promise<ApiResponse<User>> {
+  async createUser(data: { fullName: string; email: string; role: string; studentId?: string; tempPassword?: boolean }): Promise<ApiResponse<User & { password?: string }>> {
     return this.fetch(`${API_BASE_URL}/users`, { method: 'POST', body: JSON.stringify(data) });
   }
 
@@ -372,7 +372,7 @@ class ApiService {
     return this.fetch(`${API_BASE_URL}/users/${userId}/reactivate`, { method: 'POST' });
   }
 
-  async resetUserPassword(userId: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+  async resetUserPassword(userId: string): Promise<ApiResponse<{ success: boolean; message: string; password?: string }>> {
     return this.fetch(`${API_BASE_URL}/users/${userId}/reset-password`, { method: 'POST' });
   }
 

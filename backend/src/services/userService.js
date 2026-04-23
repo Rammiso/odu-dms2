@@ -74,7 +74,7 @@ export const userService = {
       });
     }
 
-    return user;
+    return { ...user.toJSON(), password };
   },
 
   getUser: async (userId) => {
@@ -108,7 +108,7 @@ export const userService = {
   adminResetPassword: async (userId) => {
     const password = crypto.randomBytes(8).toString("hex");
     await userRepository.updatePassword(userId, password);
-    return { message: "Reset link sent" };
+    return { message: "Password reset successfully", password };
   },
 
   getRolePermissions: async () => ({
