@@ -36,9 +36,11 @@ export const requireAuth = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, env.jwtSecret);
+    const normalisedRole = normaliseRole(decoded.role);
+    console.log(`[auth] decoded.role="${decoded.role}" → normalised="${normalisedRole}"`);
     req.user = {
       id: decoded.sub,
-      role: normaliseRole(decoded.role),
+      role: normalisedRole,
     };
 
     next();
@@ -58,7 +60,7 @@ export const authorizeRoles = (...allowedRoles) =>
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      throw new ApiError(403, "Insufficient permission");
+      throw new ApiError(403, `Insufficient permission (role: ${req.user.role}, required: ${allowedRoles.join("|")})`);
     }
 
     next();
