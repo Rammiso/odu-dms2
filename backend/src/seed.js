@@ -25,15 +25,15 @@ const importData = async () => {
     await Dorm.deleteMany();
     await Room.deleteMany();
 
-    // Hardcoded admin credentials
-    const hashedPassword = await bcrypt.hash(ADMIN_CREDENTIALS.password, 10);
+    // insertMany bypasses pre('save') hooks, so hash manually
+    const hashedPassword = await bcrypt.hash(ADMIN_CREDENTIALS.password, 12);
 
     const createdUsers = await User.insertMany([
       {
         fullName: ADMIN_CREDENTIALS.fullName,
         username: ADMIN_CREDENTIALS.username,
         email: ADMIN_CREDENTIALS.email,
-        password: hashedPassword,
+        password: ADMIN_CREDENTIALS.password,
         role: ADMIN_CREDENTIALS.role,
         status: "Active",
       },
@@ -41,7 +41,7 @@ const importData = async () => {
         fullName: "Warden Jane",
         username: "warden_jane",
         email: "jane@odu.edu.et",
-        password: hashedPassword,
+        password: ADMIN_CREDENTIALS.password,
         role: "Dorm Admin",
         status: "Active",
       },
@@ -49,7 +49,7 @@ const importData = async () => {
         fullName: "Maintenance Mark",
         username: "maint_mark",
         email: "mark@odu.edu.et",
-        password: hashedPassword,
+        password: ADMIN_CREDENTIALS.password,
         role: "Maintenance Staff",
         status: "Active",
       },
@@ -57,7 +57,7 @@ const importData = async () => {
         fullName: "Student Sam",
         username: "sam.student",
         email: "sam@student.odu.edu.et",
-        password: hashedPassword,
+        password: ADMIN_CREDENTIALS.password,
         role: "Student",
         studentId: "STU001",
         gender: "M",
@@ -67,7 +67,7 @@ const importData = async () => {
         fullName: "Student Sally",
         username: "sally.student",
         email: "sally@student.odu.edu.et",
-        password: hashedPassword,
+        password: ADMIN_CREDENTIALS.password,
         role: "Student",
         studentId: "STU002",
         gender: "F",
