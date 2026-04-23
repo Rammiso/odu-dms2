@@ -11,5 +11,6 @@ router.post("/logout", requireAuth, authController.logout);
 router.post("/forgot-password", authController.forgotPassword);
 router.post("/reset-password", authController.resetPassword);
 router.get("/validate-session", requireAuth, authController.validateSession);
+router.post("/refresh", authController.refreshToken);
 
 export { router as authRoutes };

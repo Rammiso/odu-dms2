@@ -12,10 +12,11 @@ import {
 
 const router = Router();
 
-router.use(
-  requireAuth,
-  authorizeRoles("dorm_admin", "management", "system_admin")
-);
+// Available rooms — accessible by all authenticated users (students need this for room change requests)
+router.get("/rooms/available", requireAuth, roomController.getAvailableRooms);
+
+// Admin-only routes
+router.use(requireAuth, authorizeRoles("dorm_admin", "management", "system_admin"));
 
 router.get("/dorms", roomController.getAllDorms);
 router.post("/dorms", validate(createDormSchema), roomController.createDorm);
@@ -23,7 +24,6 @@ router.post("/dorms/:dormId/floors", validate(addFloorSchema), roomController.ad
 
 router.get("/rooms", roomController.getRooms);
 router.post("/rooms", validate(createRoomSchema), roomController.createRoom);
-router.get("/rooms/available", roomController.getAvailableRooms);
 router.get("/rooms/:roomId", roomController.getRoom);
 router.put("/rooms/:roomId", validate(updateRoomSchema), roomController.updateRoom);
 router.get("/rooms/:roomId/occupants", roomController.getRoomOccupants);

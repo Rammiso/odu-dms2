@@ -68,4 +68,9 @@ export const authController = {
     const data = await authService.validateSession(req.user.id);
     res.status(200).json(data);
   }),
+
+  refreshToken: asyncHandler(async (req, res) => {
+    const data = await authService.refreshToken(req.body.token);
+    res.status(200).json({ success: true, ...data });
+  }),
 };

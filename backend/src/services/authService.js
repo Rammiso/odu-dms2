@@ -173,4 +173,19 @@ export const authService = {
       role: user.role,
     };
   },
+
+  refreshToken: async (token) => {
+    if (!token) throw new ApiError(400, "Refresh token is required");
+
+    const record = await tokenRepository.findRefreshToken(token);
+    if (!record || record.revokedAt || record.expiresAt < new Date()) {
+      throw new ApiError(401, "Invalid or expired refresh token");
+    }
+
+    const user = await userRepository.findById(record.user);
+    if (!user) throw new ApiError(401, "User not found");
+
+    const newToken = generateToken(user.id, user.role);
+    return { token: newToken };
+  },
 };

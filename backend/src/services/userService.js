@@ -40,17 +40,28 @@ export const userService = {
       throw new ApiError(409, "Email already exists");
     }
 
+    // Normalize role to Title Case to match DB enum
+    const roleMap = {
+      student: "Student",
+      dorm_admin: "Dorm Admin",
+      maintenance: "Maintenance Staff",
+      maintenance_staff: "Maintenance Staff",
+      management: "Management",
+      system_admin: "System Admin",
+    };
+    const normalizedRole = roleMap[payload.role?.toLowerCase?.().replace(/\s+/g, "_")] || payload.role;
+
     const user = await userRepository.create({
       username,
       fullName: payload.fullName,
       email: payload.email,
       password,
-      role: payload.role,
+      role: normalizedRole,
       status: "Active",
       studentId: payload.studentId,
     });
 
-    if (payload.role === "Student" && payload.studentId) {
+    if ((normalizedRole === "Student") && payload.studentId) {
       await Student.create({
         studentId: payload.studentId,
         fullName: payload.fullName,
