@@ -30,6 +30,12 @@ const StudentsPage = () => {
   const [yearFilter, setYearFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRunningAllocation, setIsRunningAllocation] = useState(false);
+  const [isAllocModalOpen, setIsAllocModalOpen] = useState(false);
+  const [allocFilters, setAllocFilters] = useState<{ gender: string; year: string; department: string }>({
+    gender: 'all',
+    year: 'all',
+    department: 'all',
+  });
 
   const [formData, setFormData] = useState({
     studentId: '',
@@ -134,11 +140,17 @@ const StudentsPage = () => {
 
   const handleAutoAllocate = async () => {
     setIsRunningAllocation(true);
-    const result = await apiService.runAutomaticAllocation({ previewOnly: false });
+    const params: { gender?: string; year?: number; department?: string; previewOnly: boolean } = { previewOnly: false };
+    if (allocFilters.gender !== 'all') params.gender = allocFilters.gender;
+    if (allocFilters.year !== 'all') params.year = Number(allocFilters.year);
+    if (allocFilters.department !== 'all') params.department = allocFilters.department;
+
+    const result = await apiService.runAutomaticAllocation(params);
     setIsRunningAllocation(false);
 
     if (result.success && result.data?.summary) {
-      toast.success(`Allocated ${result.data.summary.totalAssigned} students`);
+      toast.success(`Allocated ${result.data.summary.totalAssigned} students${result.data.summary.totalUnassigned ? `, ${result.data.summary.totalUnassigned} unassigned` : ''}`);
+      setIsAllocModalOpen(false);
       await loadStudents();
       return;
     }
@@ -179,11 +191,11 @@ const StudentsPage = () => {
           <Button
             variant="outline"
             className="h-9 text-sm border-warning/30 text-warning hover:bg-warning/10"
-            onClick={handleAutoAllocate}
+            onClick={() => setIsAllocModalOpen(true)}
             disabled={isRunningAllocation}
           >
             <Wand2 className="w-4 h-4 mr-1" />
-            {isRunningAllocation ? 'Allocating...' : 'Auto Allocate'}
+            Auto Allocate
           </Button>
           <Button className="gradient-primary text-primary-foreground h-9 text-sm" onClick={() => setIsModalOpen(true)}>
             <Plus className="w-4 h-4 mr-1" /> Add Student
@@ -281,8 +293,7 @@ const StudentsPage = () => {
         <DialogContent className="glass border-primary/30">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Add New Student</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSave} className="space-y-4">
+          </DialogHeader>          <form onSubmit={handleSave} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Student ID</Label>
@@ -340,6 +351,72 @@ const StudentsPage = () => {
               <Button type="submit" className="gradient-primary text-primary-foreground">Create Student</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Auto Allocation Dialog */}
+      <Dialog open={isAllocModalOpen} onOpenChange={setIsAllocModalOpen}>
+        <DialogContent className="glass border-primary/30 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Wand2 className="w-5 h-5 text-warning" /> Auto Allocate Rooms
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-xs text-muted-foreground">Filter which students to allocate. Leave filters as "All" to allocate all unassigned students.</p>
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Gender</Label>
+              <Select value={allocFilters.gender} onValueChange={(val) => setAllocFilters({ ...allocFilters, gender: val })}>
+                <SelectTrigger className="bg-secondary/40 border-white/5">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Genders</SelectItem>
+                  <SelectItem value="M">Male</SelectItem>
+                  <SelectItem value="F">Female</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Year</Label>
+              <Select value={allocFilters.year} onValueChange={(val) => setAllocFilters({ ...allocFilters, year: val })}>
+                <SelectTrigger className="bg-secondary/40 border-white/5">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Years</SelectItem>
+                  {[1, 2, 3, 4, 5].map((y) => (
+                    <SelectItem key={y} value={y.toString()}>Year {y}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Department</Label>
+              <Select value={allocFilters.department} onValueChange={(val) => setAllocFilters({ ...allocFilters, department: val })}>
+                <SelectTrigger className="bg-secondary/40 border-white/5">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter className="pt-2">
+            <Button variant="ghost" onClick={() => setIsAllocModalOpen(false)}>Cancel</Button>
+            <Button
+              className="bg-warning/20 text-warning border border-warning/30 hover:bg-warning/30"
+              onClick={handleAutoAllocate}
+              disabled={isRunningAllocation}
+            >
+              <Wand2 className="w-4 h-4 mr-1" />
+              {isRunningAllocation ? 'Allocating...' : 'Run Allocation'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

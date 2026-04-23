@@ -19,9 +19,10 @@ const dormSchema = new mongoose.Schema(
     },
     location: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
       maxlength: 200,
+      default: "",
     },
     address: {
       type: String,

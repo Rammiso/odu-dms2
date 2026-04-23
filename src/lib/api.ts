@@ -204,7 +204,7 @@ class ApiService {
     return this.fetch(`${API_BASE_URL}/allocation/eligible-students`, { method: 'POST', body: JSON.stringify(params) });
   }
 
-  async runAutomaticAllocation(params: { gender?: string; year?: number; previewOnly?: boolean }): Promise<ApiResponse<{ assigned: Assignment[]; unassigned: Student[]; summary: { totalAssigned: number; totalUnassigned: number; reason?: string } }>> {
+  async runAutomaticAllocation(params: { gender?: string; year?: number; department?: string; previewOnly?: boolean }): Promise<ApiResponse<{ assigned: Assignment[]; unassigned: Student[]; summary: { totalAssigned: number; totalUnassigned: number; reason?: string } }>> {
     return this.fetch(`${API_BASE_URL}/allocation/automatic`, { method: 'POST', body: JSON.stringify(params) });
   }
 

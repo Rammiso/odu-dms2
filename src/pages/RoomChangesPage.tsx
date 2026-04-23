@@ -24,6 +24,7 @@ const RoomChangesPage = () => {
   const isAdmin = hasRole(['dorm_admin', 'system_admin', 'management']);
 
   const [requests, setRequests] = useState<any[]>([]);
+  const [hasAssignment, setHasAssignment] = useState<boolean | null>(null);
 
   const [statusFilter, setStatusFilter] = useState('all');
   const [isNewOpen, setIsNewOpen] = useState(false);
@@ -49,6 +50,11 @@ const RoomChangesPage = () => {
       }
       if (roomsResult.success && roomsResult.data?.rooms) {
         setAvailableRooms(roomsResult.data.rooms as any[]);
+      }
+
+      if (!isAdmin) {
+        const assignmentRes = await apiService.getStudentAssignment();
+        setHasAssignment(!!(assignmentRes.success && assignmentRes.data));
       }
     };
 
@@ -142,7 +148,16 @@ const RoomChangesPage = () => {
             </SelectContent>
           </Select>
           {!isAdmin && (
-            <Button className="gradient-primary text-primary-foreground h-9 text-sm shadow-glow" onClick={() => setIsNewOpen(true)}>
+            <Button
+              className="gradient-primary text-primary-foreground h-9 text-sm shadow-glow"
+              onClick={() => {
+                if (!hasAssignment) {
+                  toast.error('You need an active room assignment before requesting a change.');
+                  return;
+                }
+                setIsNewOpen(true);
+              }}
+            >
               <Plus className="w-4 h-4 mr-1" /> Request Change
             </Button>
           )}
@@ -154,11 +169,20 @@ const RoomChangesPage = () => {
         <Card className="glass rounded-xl">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <ArrowRightLeft className="w-12 h-12 text-muted-foreground/30 mb-4" />
-            <p className="text-muted-foreground text-sm">No room change requests found.</p>
-            {!isAdmin && (
-              <Button className="mt-4 gradient-primary text-primary-foreground" onClick={() => setIsNewOpen(true)}>
-                Submit your first request
-              </Button>
+            {!isAdmin && hasAssignment === false ? (
+              <>
+                <p className="text-muted-foreground text-sm font-medium">No room assigned yet</p>
+                <p className="text-muted-foreground/60 text-xs mt-1">You can request a room change once an admin assigns you a room.</p>
+              </>
+            ) : (
+              <>
+                <p className="text-muted-foreground text-sm">No room change requests found.</p>
+                {!isAdmin && (
+                  <Button className="mt-4 gradient-primary text-primary-foreground" onClick={() => setIsNewOpen(true)}>
+                    Submit your first request
+                  </Button>
+                )}
+              </>
             )}
           </CardContent>
         </Card>

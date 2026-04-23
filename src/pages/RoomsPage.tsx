@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { apiService } from '@/lib/api';
 import type { Room } from '@/types/api';
-import { DoorOpen, Search, Filter, Plus, Edit, Trash2 } from 'lucide-react';
+import { DoorOpen, Search, Filter, Plus, Edit, Trash2, Building2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -90,6 +90,9 @@ const RoomsPage = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<RoomRow | null>(null);
+  const [isBuildingModalOpen, setIsBuildingModalOpen] = useState(false);
+  const [buildingForm, setBuildingForm] = useState({ name: '', code: '' });
+  const [savingBuilding, setSavingBuilding] = useState(false);
 
   const [formData, setFormData] = useState({
     dormId: '',
@@ -139,6 +142,27 @@ const RoomsPage = () => {
       return true;
     });
   }, [rooms, search, buildingFilter, statusFilter]);
+
+  const handleSaveBuilding = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingBuilding(true);
+    const code = buildingForm.code || buildingForm.name.toUpperCase().replace(/\s+/g, '_').slice(0, 20);
+    const result = await apiService.createDorm({ name: buildingForm.name, code });
+    setSavingBuilding(false);
+
+    if (result.success && result.data) {
+      const newDorm = result.data as BackendDorm;
+      const newOption = { id: newDorm.id || newDorm._id || '', name: newDorm.name, code: newDorm.code };
+      setDorms((prev) => [...prev, newOption]);
+      setFormData((prev) => ({ ...prev, dormId: newOption.id }));
+      setBuildingForm({ name: '', code: '' });
+      setIsBuildingModalOpen(false);
+      toast.success(`Building "${newDorm.name}" created`);
+      return;
+    }
+
+    toast.error(result.error || 'Failed to create building');
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -361,26 +385,37 @@ const RoomsPage = () => {
             setEditingRoom(null);
           }
         }}
-      >
-        <DialogContent className="glass border-primary/30">
+      >        <DialogContent className="glass border-primary/30">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">{editingRoom ? 'Edit Room' : 'Add New Room'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSave} className="space-y-4">
             <div className="space-y-2">
               <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Building</Label>
-              <Select value={formData.dormId} onValueChange={(val) => setFormData({ ...formData, dormId: val })}>
-                <SelectTrigger className="bg-secondary/40 border-white/5">
-                  <SelectValue placeholder="Select building" />
-                </SelectTrigger>
-                <SelectContent>
-                  {dorms.map((d) => (
-                    <SelectItem key={d.id} value={d.id}>
-                      {d.name} ({d.code})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select value={formData.dormId} onValueChange={(val) => setFormData({ ...formData, dormId: val })}>
+                  <SelectTrigger className="bg-secondary/40 border-white/5 flex-1">
+                    <SelectValue placeholder="Select building" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dorms.map((d) => (
+                      <SelectItem key={d.id} value={d.id}>
+                        {d.name} ({d.code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="border-primary/30 text-primary hover:bg-primary/10 px-3"
+                  onClick={() => setIsBuildingModalOpen(true)}
+                  title="Add new building"
+                >
+                  <Building2 className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -441,6 +476,44 @@ const RoomsPage = () => {
             </div>
             <DialogFooter className="pt-4">
               <Button type="submit" className="gradient-primary text-primary-foreground">Save Room</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Building Dialog */}
+      <Dialog open={isBuildingModalOpen} onOpenChange={setIsBuildingModalOpen}>
+        <DialogContent className="glass border-primary/30 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-primary" /> Add New Building
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSaveBuilding} className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Building Name</Label>
+              <Input
+                placeholder="e.g. Block A, North Wing"
+                value={buildingForm.name}
+                onChange={(e) => setBuildingForm({ ...buildingForm, name: e.target.value })}
+                required
+                className="bg-secondary/40 border-white/5"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Code (optional)</Label>
+              <Input
+                placeholder="e.g. BLK-A (auto-generated if empty)"
+                value={buildingForm.code}
+                onChange={(e) => setBuildingForm({ ...buildingForm, code: e.target.value.toUpperCase() })}
+                className="bg-secondary/40 border-white/5"
+              />
+            </div>
+            <DialogFooter className="pt-2">
+              <Button type="button" variant="ghost" onClick={() => setIsBuildingModalOpen(false)}>Cancel</Button>
+              <Button type="submit" className="gradient-primary text-primary-foreground" disabled={savingBuilding}>
+                {savingBuilding ? 'Saving...' : 'Add Building'}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
