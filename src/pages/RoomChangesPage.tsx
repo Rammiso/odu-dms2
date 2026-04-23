@@ -21,7 +21,7 @@ const REASON_LABELS: Record<string, string> = {
 
 const RoomChangesPage = () => {
   const { user, hasRole } = useAuth();
-  const isAdmin = hasRole(['dorm_admin', 'system_admin']);
+  const isAdmin = hasRole(['dorm_admin', 'system_admin', 'management']);
 
   const [requests, setRequests] = useState<any[]>([]);
 
