@@ -290,7 +290,6 @@ const LandingPage = () => {
           {/* Right Column: Interactive Widgets */}
           <div className="relative animate-scale-in flex flex-col gap-6">
             {/* Decorative grid */}
-            <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay"></div>
 
             {/* Status Board Widget */}
             <div className="animate-float" style={{ animationDelay: '0s' }}>
